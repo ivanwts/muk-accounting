@@ -35,8 +35,9 @@ const T = {
     "online.p1": "Any state in the U.S.", "online.p2": "Online meetings for your business", "online.p3": "No trips to the office",
     "booking.eyebrow": "Appointments",
     "booking.title": "Book a call or request a service",
-    "booking.text": "Choose what you need: a short call with Mariam or a specific service. Online booking is open during the periods we set — mainly in tax season. At other times, leave a request and Mariam will get back to you.",
+    "booking.text": "Leave your name and phone number — Mariam will call you back. Or pick a convenient time in the calendar yourself; it is open during the periods we set, mainly in tax season.",
     "booking.open": "Book a call", "booking.service": "Request a service",
+    "booking.calendar": "Or pick a time in the calendar yourself →",
     "form.title": "Leave a request",
     "form.type": "What do you need?", "form.typeCall": "A call or consultation", "form.typeService": "A service: taxes, bookkeeping, payroll…",
     "form.name": "Your name", "form.phone": "Phone", "form.email": "Email",
@@ -48,6 +49,9 @@ const T = {
     "form.privacy": "How we handle your details: <a href=\"privacy.html\">Privacy Policy</a>.",
     "form.required": "Please enter your name and phone number.",
     "form.opened": "Your email app has opened with the request — press Send there to finish.",
+    "form.sending": "Sending…",
+    "form.sent": "Thank you! Your request is in — Mariam will get back to you shortly.",
+    "form.failed": "Could not send the request. Please call +1 (564) 999-0089 or try again in a minute.",
     "form.subject": "Request from mukaccounting.net",
     "faq.eyebrow": "FAQ", "faq.title": "Questions clients ask first",
     "q1.q": "What should I bring to the first meeting?",
@@ -101,8 +105,9 @@ const T = {
     "online.p1": "Любой штат США", "online.p2": "Онлайн-встреча для вашего бизнеса", "online.p3": "Без поездок в офис",
     "booking.eyebrow": "Запись",
     "booking.title": "Запишитесь на звонок или закажите услугу",
-    "booking.text": "Выберите, что нужно: короткий звонок с Мариам или конкретная услуга. Онлайн-запись открыта в периоды, которые мы задаём, — в основном в налоговый сезон. В остальное время оставьте заявку, и Мариам свяжется с вами.",
+    "booking.text": "Оставьте имя и телефон — Мариам вам перезвонит. Или сами выберите удобное время в календаре: он открыт в периоды, которые мы задаём, в основном в налоговый сезон.",
     "booking.open": "Записаться на звонок", "booking.service": "Заказать услугу",
+    "booking.calendar": "Или выберите время в календаре сами →",
     "form.title": "Оставьте заявку",
     "form.type": "Что вам нужно?", "form.typeCall": "Звонок или консультация", "form.typeService": "Услуга: налоги, бухгалтерия, payroll…",
     "form.name": "Ваше имя", "form.phone": "Телефон", "form.email": "Email",
@@ -114,6 +119,9 @@ const T = {
     "form.privacy": "Как мы обращаемся с вашими данными: <a href=\"privacy.html\">Политика конфиденциальности</a> (на английском).",
     "form.required": "Укажите, пожалуйста, имя и телефон.",
     "form.opened": "Открылась ваша почта с готовой заявкой — нажмите там «Отправить».",
+    "form.sending": "Отправляем…",
+    "form.sent": "Спасибо! Заявка получена, Мариам скоро свяжется с вами.",
+    "form.failed": "Не удалось отправить заявку. Позвоните +1 (564) 999-0089 или попробуйте через минуту.",
     "form.subject": "Заявка с сайта mukaccounting.net",
     "faq.eyebrow": "Вопросы", "faq.title": "Что спрашивают чаще всего",
     "q1.q": "Что взять на первую встречу?",
@@ -172,23 +180,65 @@ if (CONFIG.address) {
   document.getElementById("f-address").textContent = CONFIG.address;
 }
 
-// Booking buttons: "Book a call" opens the firm's online booking once it exists; both buttons preselect the request type in the form
+// Booking: "Book a call" / "Request a service" preselect the request type in the form; the calendar is a secondary link
 const bookingLink = document.getElementById("booking-link");
-const serviceLink = document.getElementById("service-link");
 const typeSelect = document.getElementById("form-type");
 if (CONFIG.bookingUrl) { bookingLink.href = CONFIG.bookingUrl; bookingLink.target = "_blank"; bookingLink.rel = "noopener"; }
-[bookingLink, serviceLink].forEach((a) =>
-  a.addEventListener("click", () => { typeSelect.value = a.dataset.type; })
-);
+else document.getElementById("booking-alt").style.display = "none";
+["call-link", "service-link"].forEach((id) => {
+  const a = document.getElementById(id);
+  a.addEventListener("click", () => { typeSelect.value = a.dataset.type; });
+});
 
-// Request form: composes an email in the visitor's mail app
+// Request form: goes straight into the firm's pipeline when CONFIG.leadUrl is set, otherwise composes an email
 const form = document.getElementById("booking-form");
 const statusEl = document.getElementById("form-status");
-form.addEventListener("submit", (e) => {
+const submitBtn = form.querySelector('button[type="submit"]');
+
+async function sendLead(payload) {
+  const res = await fetch(CONFIG.leadUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) throw new Error(data.error || String(res.status));
+}
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const d = Object.fromEntries(new FormData(form));
-  if (!d.name.trim() || !d.phone.trim()) { statusEl.textContent = T[lang]["form.required"]; return; }
   const t = T[lang];
+  if (!d.name.trim() || !d.phone.trim()) { statusEl.textContent = t["form.required"]; return; }
+  if (d.website) return; // honeypot: bots fill the hidden field, people don't
+
+  if (CONFIG.leadUrl) {
+    submitBtn.disabled = true;
+    statusEl.textContent = t["form.sending"];
+    try {
+      await sendLead({
+        firm: "muk-accounting",
+        type: d.type,
+        name: d.name.trim(),
+        phone: d.phone.trim(),
+        email: (d.email || "").trim(),
+        service: d.service,
+        preferred_date: d.date || "",
+        message: (d.message || "").trim(),
+        sms_consent: !!d.sms,
+        lang,
+        source: "mukaccounting.net",
+      });
+      form.reset();
+      statusEl.textContent = t["form.sent"];
+    } catch (err) {
+      statusEl.textContent = t["form.failed"];
+    } finally {
+      submitBtn.disabled = false;
+    }
+    return;
+  }
+
   const body = [
     `${t["form.type"]} ${typeSelect.selectedOptions[0].textContent}`,
     `${t["form.name"]}: ${d.name}`,

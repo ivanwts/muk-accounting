@@ -245,6 +245,10 @@ p { margin: 0 0 1em; }
 }
 
 /* Booking actions */
+.booking-alt { margin: 18px 0 0; font-size: 0.95rem; }
+.booking-alt a { color: var(--clay-2); font-weight: 600; text-decoration: none; }
+.booking-alt a:hover { text-decoration: underline; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .booking-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
 .btn-clay { background: var(--clay); border-color: var(--clay); color: #fff; }
 .btn-clay:hover { background: var(--clay-2); border-color: var(--clay-2); }

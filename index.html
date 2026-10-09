@@ -174,9 +174,10 @@
         <h2 data-i18n="booking.title">Book a call or request a service</h2>
         <p data-i18n="booking.text">Choose what you need: a short call with Mariam or a specific service. Online booking is open during the periods we set — mainly in tax season. At other times, leave a request and Mariam will get back to you.</p>
         <div class="booking-actions">
-          <a class="btn btn-clay" id="booking-link" href="#booking-form" data-type="call" data-i18n="booking.open">Book a call</a>
+          <a class="btn btn-clay" id="call-link" href="#booking-form" data-type="call" data-i18n="booking.open">Book a call</a>
           <a class="btn btn-ghost" id="service-link" href="#booking-form" data-type="service" data-i18n="booking.service">Request a service</a>
         </div>
+        <p class="booking-alt" id="booking-alt"><a id="booking-link" href="#booking-form" data-i18n="booking.calendar">Or pick a time in the calendar yourself →</a></p>
       </div>
 
       <form class="booking-form" id="booking-form" novalidate>
@@ -188,6 +189,7 @@
           </select>
         </label>
         <label><span data-i18n="form.name">Your name</span><input name="name" type="text" autocomplete="name" required></label>
+        <input class="hp" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="row">
           <label><span data-i18n="form.phone">Phone</span><input name="phone" type="tel" autocomplete="tel" required></label>
           <label><span data-i18n="form.email">Email</span><input name="email" type="email" autocomplete="email"></label>
@@ -283,7 +285,7 @@
   </div>
 </footer>
 
-<script src="config.js?v=20261009d"></script>
-<script src="script.js?v=20261009c"></script>
+<script src="config.js?v=20261009e"></script>
+<script src="script.js?v=20261009d"></script>
 </body>
 </html>
