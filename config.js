@@ -1,6 +1,6 @@
 // Everything Mariam-specific lives here. Fill in and every page picks it up.
 const CONFIG = {
-  leadUrl: "",                          // WorkTime endpoint that creates a lead in the pipeline + pushes Mariam; empty = form falls back to e-mail
+  leadUrl: "https://app.worktimealliance.com/api/accountant/office/lead",  // WorkTime endpoint: creates a card in the pipeline and e-mails Mariam; on failure the form falls back to e-mail
   bookingUrl: "https://app.worktimealliance.com/accountant/book/muk-accounting",  // public booking page from the WorkTime cabinet; empty = "Book a call" scrolls to the request form
   email: "mariamkrevskaia@gmail.com",    // where form requests are addressed
   phone: "+1 (564) 999-0089",            // mobile

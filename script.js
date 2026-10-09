@@ -51,7 +51,10 @@ const T = {
     "form.opened": "Your email app has opened with the request — press Send there to finish.",
     "form.sending": "Sending…",
     "form.sent": "Thank you! Your request is in — Mariam will get back to you shortly.",
-    "form.failed": "Could not send the request. Please call +1 (564) 999-0089 or try again in a minute.",
+    "form.failed": "The office system did not respond, so your email app has opened with the request — press Send there. Or call +1 (564) 999-0089.",
+    "form.badPhone": "Please check the phone number — a U.S. number like (253) 555-0100.",
+    "form.badEmail": "Please check the email address.",
+    "form.badName": "Please enter your name.",
     "form.subject": "Request from mukaccounting.net",
     "faq.eyebrow": "FAQ", "faq.title": "Questions clients ask first",
     "q1.q": "What should I bring to the first meeting?",
@@ -121,7 +124,10 @@ const T = {
     "form.opened": "Открылась ваша почта с готовой заявкой — нажмите там «Отправить».",
     "form.sending": "Отправляем…",
     "form.sent": "Спасибо! Заявка получена, Мариам скоро свяжется с вами.",
-    "form.failed": "Не удалось отправить заявку. Позвоните +1 (564) 999-0089 или попробуйте через минуту.",
+    "form.failed": "Система офиса не ответила, поэтому открылась ваша почта с готовой заявкой — нажмите там «Отправить». Или позвоните +1 (564) 999-0089.",
+    "form.badPhone": "Проверьте, пожалуйста, телефон — нужен номер США, например (253) 555-0100.",
+    "form.badEmail": "Проверьте, пожалуйста, адрес почты.",
+    "form.badName": "Укажите, пожалуйста, имя.",
     "form.subject": "Заявка с сайта mukaccounting.net",
     "faq.eyebrow": "Вопросы", "faq.title": "Что спрашивают чаще всего",
     "q1.q": "Что взять на первую встречу?",
@@ -190,10 +196,12 @@ else document.getElementById("booking-alt").style.display = "none";
   a.addEventListener("click", () => { typeSelect.value = a.dataset.type; });
 });
 
-// Request form: goes straight into the firm's pipeline when CONFIG.leadUrl is set, otherwise composes an email
+// Request form: goes straight into the firm's pipeline (CONFIG.leadUrl); if the office system is down, falls back to an email
 const form = document.getElementById("booking-form");
 const statusEl = document.getElementById("form-status");
 const submitBtn = form.querySelector('button[type="submit"]');
+
+class LeadError extends Error { constructor(code) { super(code); this.code = code; } }
 
 async function sendLead(payload) {
   const res = await fetch(CONFIG.leadUrl, {
@@ -202,43 +210,10 @@ async function sendLead(payload) {
     body: JSON.stringify(payload),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.ok === false) throw new Error(data.error || String(res.status));
+  if (!res.ok || data.ok === false) throw new LeadError(data.error || String(res.status));
 }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const d = Object.fromEntries(new FormData(form));
-  const t = T[lang];
-  if (!d.name.trim() || !d.phone.trim()) { statusEl.textContent = t["form.required"]; return; }
-  if (d.website) return; // honeypot: bots fill the hidden field, people don't
-
-  if (CONFIG.leadUrl) {
-    submitBtn.disabled = true;
-    statusEl.textContent = t["form.sending"];
-    try {
-      await sendLead({
-        firm: "muk-accounting",
-        type: d.type,
-        name: d.name.trim(),
-        phone: d.phone.trim(),
-        email: (d.email || "").trim(),
-        service: d.service,
-        preferred_date: d.date || "",
-        message: (d.message || "").trim(),
-        sms_consent: !!d.sms,
-        lang,
-        source: "mukaccounting.net",
-      });
-      form.reset();
-      statusEl.textContent = t["form.sent"];
-    } catch (err) {
-      statusEl.textContent = t["form.failed"];
-    } finally {
-      submitBtn.disabled = false;
-    }
-    return;
-  }
-
+function openMail(d, t) {
   const body = [
     `${t["form.type"]} ${typeSelect.selectedOptions[0].textContent}`,
     `${t["form.name"]}: ${d.name}`,
@@ -251,7 +226,48 @@ form.addEventListener("submit", async (e) => {
     d.message || "",
   ].join("\n");
   window.location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent(t["form.subject"])}&body=${encodeURIComponent(body)}`;
-  statusEl.textContent = t["form.opened"];
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(form));
+  const t = T[lang];
+  if (!d.name.trim() || !d.phone.trim()) { statusEl.textContent = t["form.required"]; return; }
+  if (d.website) { statusEl.textContent = t["form.sent"]; return; } // honeypot: bots fill the hidden field, people don't
+
+  if (!CONFIG.leadUrl) { openMail(d, t); statusEl.textContent = t["form.opened"]; return; }
+
+  submitBtn.disabled = true;
+  statusEl.textContent = t["form.sending"];
+  try {
+    await sendLead({
+      firm: "muk-accounting",
+      type: d.type,
+      name: d.name.trim(),
+      phone: d.phone.trim(),
+      email: (d.email || "").trim(),
+      service: d.service,
+      preferred_date: d.date || "",
+      message: (d.message || "").trim(),
+      sms_consent: !!d.sms,
+      lang,
+      source: "mukaccounting.net",
+      website: d.website || "",
+    });
+    form.reset();
+    statusEl.textContent = t["form.sent"];
+  } catch (err) {
+    // validation errors come back from the office system; anything else means it is unreachable
+    const fixable = { bad_phone: "form.badPhone", bad_email: "form.badEmail", bad_name: "form.badName" };
+    if (err instanceof LeadError && fixable[err.code]) {
+      statusEl.textContent = t[fixable[err.code]];
+    } else {
+      openMail(d, t);
+      statusEl.textContent = t["form.failed"];
+    }
+  } finally {
+    submitBtn.disabled = false;
+  }
 });
 
 // Mobile menu
