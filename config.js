@@ -7,7 +7,7 @@ const CONFIG = {
   phoneOffice: "(253) 655-0555",         // office line
   address: "19115 68th Ave S, H-109, Kent, WA 98032",
   hours: {
-    en: "Tax season (January–April): 10 AM – 6 PM · Rest of the year: by appointment",
-    ru: "Налоговый сезон (январь–апрель): 10:00–18:00 · В остальное время — по записи",
+    en: "Tax season (January–April): 10 AM – 4 PM · Rest of the year: by appointment",
+    ru: "Налоговый сезон (январь–апрель): 10:00–16:00 · В остальное время — по записи",
   },
 };
