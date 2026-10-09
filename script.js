@@ -26,7 +26,7 @@ const T = {
     "fact2.n": "5 years", "fact2.t": "in accounting",
     "fact3.n": "Every filing", "fact3.t": "reviewed by Mariam personally",
     "process.eyebrow": "How it works", "process.title": "Three steps, no surprises",
-    "p1.title": "Book a time", "p1.text": "Choose a service and a convenient time online.",
+    "p1.title": "Reach out", "p1.text": "Leave a request or pick a time in the calendar — Mariam calls you back.",
     "p2.title": "Send your documents", "p2.text": "Mariam tells you exactly what is needed — nothing extra.",
     "p3.title": "Done and filed", "p3.text": "You review the result, sign, and keep a copy for your records.",
     "online.eyebrow": "Online · nationwide",
@@ -99,7 +99,7 @@ const T = {
     "fact2.n": "5 лет", "fact2.t": "в бухгалтерии",
     "fact3.n": "Каждый документ", "fact3.t": "проверяет лично Мариам",
     "process.eyebrow": "Как это работает", "process.title": "Три шага без сюрпризов",
-    "p1.title": "Запишитесь", "p1.text": "Выберите услугу и удобное время онлайн.",
+    "p1.title": "Напишите нам", "p1.text": "Оставьте заявку или выберите время в календаре — Мариам перезвонит.",
     "p2.title": "Пришлите документы", "p2.text": "Мариам скажет, что именно нужно, — ничего лишнего.",
     "p3.title": "Готово и подано", "p3.text": "Вы проверяете результат, подписываете и получаете копию.",
     "online.eyebrow": "Онлайн · по всей Америке",
@@ -281,3 +281,29 @@ nav.addEventListener("click", () => nav.classList.remove("is-open"));
 
 document.getElementById("year").textContent = new Date().getFullYear();
 applyLang();
+
+// Structured data for search engines (Google renders scripts), built from CONFIG
+const ld = document.createElement("script");
+ld.type = "application/ld+json";
+ld.textContent = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "AccountingService",
+  name: "M.U.K. Accounting",
+  url: "https://mukaccounting.net/",
+  image: "https://mukaccounting.net/images/og.jpg",
+  logo: "https://mukaccounting.net/images/apple-touch-icon.png",
+  telephone: CONFIG.phone,
+  email: CONFIG.email,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "19115 68th Ave S, H-109",
+    addressLocality: "Kent",
+    addressRegion: "WA",
+    postalCode: "98032",
+    addressCountry: "US",
+  },
+  areaServed: "US",
+  knowsLanguage: ["en", "ru"],
+  founder: { "@type": "Person", name: "Mariam", jobTitle: "Certified Public Accountant" },
+});
+document.head.appendChild(ld);
