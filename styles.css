@@ -124,7 +124,7 @@ p { margin: 0 0 1em; }
 .logo-stage.is-dark { background: var(--green); border-radius: 40px; padding: 64px 36px; box-shadow: 0 40px 70px -40px rgba(15, 61, 51, 0.7); }
 .logo-stage.is-dark::before { display: none; }
 .logo-stage.is-dark .logo-big { content: url("images/logo-mark-light.png?v=4"); }
-.logo-stage.is-dark .logo-wordmark { content: url("images/logo-wordmark-light.png?v=4"); }
+.logo-stage.is-dark .logo-wordmark { content: url("images/logo-wordmark-light.png?v=5"); }
 .logo-stage.is-dark .logo-sub { color: rgba(250, 247, 242, 0.75); }
 .logo-sub { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 
