@@ -130,7 +130,7 @@ p { margin: 0 0 1em; }
 
 /* Services */
 .services { padding: 104px 0; }
-.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
 .card {
   position: relative;
   padding: 30px 26px 30px;
